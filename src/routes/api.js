@@ -45,17 +45,19 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 });
 
 // update the db
-router.put("/posts/:id", function( req, res, next ) {
+router.put("/post/:id", function( req, res, next ) {
 	Post.findByIdAndUpdate({ _id: req.params.id }, req.body ).then(function() {
+		console.log( req.body );
 		// we find again the object by id so we can get the updated object
 		Post.findOne({ _id: req.params.id }).then(function( post ) {
 			res.send( post );
+
 		});
 	});
 });
 
 // delete from the db
-router.delete("/posts/:id", function( req, res, next ) {
+router.delete("/post/:id", function( req, res, next ) {
 	Post.findByIdAndRemove({ _id: req.params.id }).then(function( post ) {
 		res.send( post );
 	});
