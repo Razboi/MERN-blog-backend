@@ -37,7 +37,8 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 		image: req.file.filename,
 		title: req.body.title,
 		content: req.body.content,
-		slug: req.body.title.replace( /\s+/g, "-").toLowerCase() + "-" + fullTime
+		introduction: req.body.introduction,
+		slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
 	}).then( ( post ) => {
 		res.send( post );
 		// next is the next function on the middleware (index)
@@ -51,7 +52,6 @@ router.put("/post/:id", function( req, res, next ) {
 		// we find again the object by id so we can get the updated object
 		Post.findOne({ _id: req.params.id }).then(function( post ) {
 			res.send( post );
-
 		});
 	});
 });
