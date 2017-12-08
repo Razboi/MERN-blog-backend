@@ -2,6 +2,7 @@ const express = require("express");
 const Post = require("../models/posts");
 const multer = require("multer");
 const upload = multer({ dest: "../blog/src/public/uploads/" });
+const fs = require("fs");
 
 const router = express.Router();
 
@@ -15,21 +16,21 @@ var fullTime = hh + dd + mm + yy;
 
 
 
-// get info of the post matching the slug param
-router.get("/post/:slug", (req, res, next) => {
-	Post.findOne({ slug: req.params.slug }).then( (post) => {
-		res.send( post );
-	});
-});
-
-// get from the db
+// GET ALL the posts info from the db
 router.get("/posts", function( req, res, next ) {
 	Post.find({}).then(function( posts ) {
 		res.send( posts );
 	});
 });
 
-// add to the db using multer for the image upload
+// GET info of the post matching the slug param
+router.get("/post/:slug", (req, res, next) => {
+	Post.findOne({ slug: req.params.slug }).then( (post) => {
+		res.send( post );
+	});
+});
+
+// CREATE a post adding the info to the db and uploading the image with multer
 router.post("/posts", upload.single("image"), function( req, res, next ) {
 	// we can access the text data with .body and the image data with .file
 	// save the image name, title and content to mongodb
@@ -45,7 +46,7 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 	}).catch( next );
 });
 
-// update the db
+// UPDATE the db
 router.put("/post/:id", function( req, res, next ) {
 	Post.findByIdAndUpdate({ _id: req.params.id }, req.body ).then(function() {
 		console.log( req.body );
@@ -56,9 +57,11 @@ router.put("/post/:id", function( req, res, next ) {
 	});
 });
 
-// delete from the db
+// DELETE the post info from the db and the post image from uploads
 router.delete("/post/:id", function( req, res, next ) {
 	Post.findByIdAndRemove({ _id: req.params.id }).then(function( post ) {
+		// delete the image
+		fs.unlink("../blog/src/public/uploads/" + post.image );
 		res.send( post );
 	});
 });
