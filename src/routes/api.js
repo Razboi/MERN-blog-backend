@@ -47,9 +47,17 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 });
 
 // UPDATE the db
-router.put("/post/:id", function( req, res, next ) {
+router.put("/post/:id", upload.single("updatedImage"), function( req, res, next ) {
+	// if the updateImage field has data, set the req.body.image = to the new filename
+	// then get the post and delete the stored (old) image
+	if ( req.file ) {
+		req.body.image = req.file.filename;
+		Post.findOne({ _id: req.params.id }).then(function( post ) {
+			fs.unlink("../blog/src/public/uploads/" + post.image );
+		});
+	}
+	// save the new fields to the db and upload the new image with multer
 	Post.findByIdAndUpdate({ _id: req.params.id }, req.body ).then(function() {
-		console.log( req.body );
 		// we find again the object by id so we can get the updated object
 		Post.findOne({ _id: req.params.id }).then(function( post ) {
 			res.send( post );
