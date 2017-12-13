@@ -1,5 +1,5 @@
 const express = require("express");
-const Post = require("../models/posts");
+const Post = require("../models/Posts");
 const multer = require("multer");
 const upload = multer({ dest: "../blog/src/public/uploads/" });
 const fs = require("fs");
