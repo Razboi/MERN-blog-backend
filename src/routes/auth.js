@@ -8,7 +8,7 @@ router.post("/", (req, res) => {
 		if ( user && user.isValidPassword( req.body.password ) ) {
 			res.json({ user: user.toAuthJSON() });
 		} else {
-			console.log("nope");
+			res.status( 400 ).json({ errors: { global: "Invalid credentials" } });
 		}
 	});
 });
