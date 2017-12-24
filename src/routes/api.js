@@ -30,6 +30,12 @@ router.get("/post/:slug", (req, res, next) => {
 	});
 });
 
+router.get("/search/:kw", (req, res, next) => {
+	Post.find({ title: { $regex: req.params.kw } }).then(function( posts ) {
+		res.send( posts );
+	});
+});
+
 // CREATE a post adding the info to the db and uploading the image with multer
 router.post("/posts", upload.single("image"), function( req, res, next ) {
 	// we can access the text data with .body and the image data with .file
