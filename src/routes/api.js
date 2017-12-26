@@ -31,7 +31,15 @@ router.get("/post/:slug", (req, res, next) => {
 });
 
 router.get("/search/:kw", (req, res, next) => {
-	Post.find({ title: { $regex: req.params.kw } }).then(function( posts ) {
+	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
+	Post.find({ title: { $regex: new RegExp( req.params.kw, "i") } }).then(function( posts ) {
+		res.send( posts );
+	});
+});
+
+router.get("/category/:kw", (req, res, next) => {
+	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
+	Post.find({ categories: req.params.kw }).then(function( posts ) {
 		res.send( posts );
 	});
 });
@@ -45,6 +53,7 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 		title: req.body.title,
 		content: req.body.content,
 		introduction: req.body.introduction,
+		categories: req.body.categories.split(" "),
 		slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
 	}).then( ( post ) => {
 		res.send( post );

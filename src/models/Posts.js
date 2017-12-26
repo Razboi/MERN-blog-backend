@@ -20,6 +20,9 @@ const PostSchema = new Schema({
 	},
 	introduction: {
 		type: String
+	},
+	categories: {
+		type: Array
 	}
 });
 
