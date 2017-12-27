@@ -23,6 +23,9 @@ const PostSchema = new Schema({
 	},
 	categories: {
 		type: Array
+	},
+	keywords: {
+		type: Array
 	}
 });
 

@@ -32,7 +32,12 @@ router.get("/post/:slug", (req, res, next) => {
 
 router.get("/search/:kw", (req, res, next) => {
 	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
-	Post.find({ title: { $regex: new RegExp( req.params.kw, "i") } }).then(function( posts ) {
+	Post.find({
+		$or: [
+			{ title: new RegExp( req.params.kw, "i") },
+			{ keywords: new RegExp( req.params.kw, "i") }
+		]
+	}).then(function( posts ) {
 		res.send( posts );
 	});
 });
@@ -54,6 +59,7 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 		content: req.body.content,
 		introduction: req.body.introduction,
 		categories: req.body.categories.split(" "),
+		keywords: req.body.keywords.split(","),
 		slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
 	}).then( ( post ) => {
 		res.send( post );
