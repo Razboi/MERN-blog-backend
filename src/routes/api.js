@@ -18,9 +18,15 @@ var fullTime = hh + dd + mm + yy;
 
 // GET ALL the posts info from the db
 router.get("/posts/:page", function( req, res, next ) {
-	var skipNum = req.params.page * 3 - 3;
-	Post.find({}, null, { skip: skipNum }).limit( 3 ).then(function( posts ) {
+	var skipNum = req.params.page * 7 - 7;
+	Post.find({}, null, { skip: skipNum }).limit( 7 ).then(function( posts ) {
 		res.send( posts );
+	});
+});
+
+router.get("/count", ( req, res, next) => {
+	Post.count({}).then( (count) => {
+		res.send([ count ]);
 	});
 });
 
