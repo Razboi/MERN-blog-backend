@@ -15,6 +15,7 @@ var hh = String( today.getHours() );
 var fullTime = hh + dd + mm + yy;
 
 
+// ---------------------------- GET POSTS ------------------------------
 
 // GET ALL the posts info from the db
 router.get("/posts/:page", function( req, res, next ) {
@@ -24,37 +25,70 @@ router.get("/posts/:page", function( req, res, next ) {
 	});
 });
 
-router.get("/count", ( req, res, next) => {
-	Post.count({}).then( (count) => {
-		res.send([ count ]);
-	});
-});
-
-// GET info of the post matching the slug param
+// GET post matching the slug param
 router.get("/post/:slug", (req, res, next) => {
 	Post.findOne({ slug: req.params.slug }).then( (post) => {
 		res.send( post );
 	});
 });
 
-router.get("/search/:kw", (req, res, next) => {
+// GET posts matching the search
+router.get("/search/:kw/:page", (req, res, next) => {
+	var skipNum = req.params.page * 7 - 7;
 	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
 	Post.find({
 		$or: [
 			{ title: new RegExp( req.params.kw, "i") },
 			{ keywords: new RegExp( req.params.kw, "i") }
 		]
-	}).then(function( posts ) {
+	}, null, { skip: skipNum }).limit( 7 ).then(function( posts ) {
 		res.send( posts );
 	});
 });
 
-router.get("/category/:kw", (req, res, next) => {
+// GET posts matching the category
+router.get("/category/:kw/:page", (req, res, next) => {
+	var skipNum = req.params.page * 7 - 7;
 	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
-	Post.find({ categories: req.params.kw }).then(function( posts ) {
+	Post.find({ categories: req.params.kw }, null, { skip: skipNum }).limit( 7 )
+	.then(function( posts ) {
 		res.send( posts );
 	});
 });
+
+// ---------------------------------------------------------------------------
+
+// -------------------------------- COUNTERS ---------------------------------
+
+// count all posts
+router.get("/count/posts", ( req, res, next) => {
+	Post.count({}).then( (count) => {
+		res.send([ count ]);
+	});
+});
+
+// count all search results
+router.get("/count/search/:kw", ( req, res, next) => {
+	Post.count({
+		$or: [
+			{ title: new RegExp( req.params.kw, "i") },
+			{ keywords: new RegExp( req.params.kw, "i") }
+		]
+	}).then( (count) => {
+		res.send([ count ]);
+	});
+});
+
+// count all category results
+router.get("/count/category/:kw", ( req, res, next) => {
+	Post.count({ categories: req.params.kw }).then( (count) => {
+		res.send([ count ]);
+	});
+});
+
+// ---------------------------------------------------------------------------
+
+// ------------------------- CREATE | UPDATE | DELETE -------------------------
 
 // CREATE a post adding the info to the db and uploading the image with multer
 router.post("/posts", upload.single("image"), function( req, res, next ) {
