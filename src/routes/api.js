@@ -11,8 +11,11 @@ var today = new Date();
 var dd = String( today.getDate() );
 var mm = String( today.getMonth() + 1 );
 var yy = today.getFullYear().toString().substr( -2 );
+var yyyy = today.getFullYear().toString();
 var hh = String( today.getHours() );
+var min = String( today.getMinutes() );
 var fullTime = hh + dd + mm + yy;
+var dateAndTime = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
 
 
 // ---------------------------- GET POSTS ------------------------------
@@ -101,6 +104,8 @@ router.post("/posts", upload.single("image"), function( req, res, next ) {
 		introduction: req.body.introduction,
 		categories: req.body.categories.split(" "),
 		keywords: req.body.keywords.split(","),
+		created: dateAndTime,
+		author: req.body.username,
 		slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
 	}).then( ( post ) => {
 		res.send( post );

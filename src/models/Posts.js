@@ -26,6 +26,12 @@ const PostSchema = new Schema({
 	},
 	keywords: {
 		type: Array
+	},
+	created: {
+		type: String
+	},
+	author: {
+		type: String
 	}
 });
 
