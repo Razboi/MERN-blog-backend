@@ -52,8 +52,9 @@ router.get("/search/:kw/:page", (req, res, next) => {
 // GET posts matching the category
 router.get("/category/:kw/:page", (req, res, next) => {
 	var skipNum = req.params.page * 7 - 7;
+	var catArr = req.params.kw.split(",");
 	// to perform case-insensitive matching on a variable I created a new regexp with the i modifier
-	Post.find({ categories: req.params.kw }, null, { skip: skipNum }).limit( 7 )
+	Post.find({ categories: { $in: catArr } }, null, { skip: skipNum }).limit( 7 )
 	.then(function( posts ) {
 		res.send( posts );
 	});
@@ -124,7 +125,15 @@ router.put("/post/:id", upload.single("updatedImage"), function( req, res, next 
 		});
 	}
 	// save the new fields to the db and upload the new image with multer
-	Post.findByIdAndUpdate({ _id: req.params.id }, req.body ).then(function() {
+	Post.findByIdAndUpdate({
+		_id: req.params.id },
+		{
+		title: req.body.title,
+		content: req.body.content,
+		introduction: req.body.introduction,
+		categories: req.body.categories.split(" "),
+		keywords: req.body.keywords.split(",")
+		}).then(function() {
 		// we find again the object by id so we can get the updated object
 		Post.findOne({ _id: req.params.id }).then(function( post ) {
 			res.send( post );
