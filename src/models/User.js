@@ -8,11 +8,12 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 // timestamps is an additional option
 
-
+// compare the hash of the password used to login with the hash stored
 UserSchema.methods.isValidPassword = function isValidPassword( password ) {
 	return bcrypt.compareSync( password, this.passwordHash );
 };
 
+// generate a jsonwebtoken
 UserSchema.methods.generateJWT = function generateJWT() {
 	return jwt.sign({
 		// public data
@@ -22,6 +23,7 @@ UserSchema.methods.generateJWT = function generateJWT() {
 );
 };
 
+// return the username and the token generated
 UserSchema.methods.toAuthJSON = function toAuthJSON() {
 	return {
 		username: this.username,

@@ -3,6 +3,7 @@ const Post = require("../models/Posts");
 const multer = require("multer");
 const upload = multer({ dest: "../blog/src/public/uploads/" });
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
@@ -16,7 +17,6 @@ var hh = String( today.getHours() );
 var min = String( today.getMinutes() );
 var fullTime = hh + dd + mm + yy;
 var dateAndTime = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
-
 
 // ---------------------------- GET POSTS ------------------------------
 
@@ -96,57 +96,84 @@ router.get("/count/category/:kw", ( req, res, next) => {
 
 // CREATE a post adding the info to the db and uploading the image with multer
 router.post("/posts", upload.single("image"), function( req, res, next ) {
-	// we can access the text data with .body and the image data with .file
-	// save the image name, title and content to mongodb
-	Post.create({
-		image: req.file.filename,
-		title: req.body.title,
-		content: req.body.content,
-		introduction: req.body.introduction,
-		categories: req.body.categories.split(" "),
-		keywords: req.body.keywords.split(","),
-		created: dateAndTime,
-		author: req.body.username,
-		slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
-	}).then( ( post ) => {
-		res.send( post );
-		// next is the next function on the middleware (index)
-	}).catch( next );
+	// check the authenticity of the token
+	jwt.verify( req.body.token, process.env.JWT_SECRET, function( err, token ) {
+		// if there's an error (fake token or non existent) send error and delete uploaded img
+		// else create the post
+		if ( err ) {
+			fs.unlink("../blog/src/public/uploads/" + req.file.filename );
+			res.send( err );
+		} else {
+			// we can access the text data with .body and the image data with .file
+			// save the image name, title and content to mongodb
+			Post.create({
+				image: req.file.filename,
+				title: req.body.title,
+				content: req.body.content,
+				introduction: req.body.introduction,
+				categories: req.body.categories.split(" "),
+				keywords: req.body.keywords.split(","),
+				created: dateAndTime,
+				author: req.body.username,
+				slug: req.body.title.replace( /\s+/g, "-").replace( /\?/g, "").toLowerCase() + "-" + fullTime
+			}).then( ( post ) => {
+				res.send( post );
+				// next is the next function on the middleware (index)
+			}).catch( next );
+		}
+	});
 });
 
 // UPDATE the db
 router.put("/post/:id", upload.single("updatedImage"), function( req, res, next ) {
-	// if the updateImage field has data, set the req.body.image = to the new filename
-	// then get the post and delete the stored (old) image
-	if ( req.file ) {
-		req.body.image = req.file.filename;
-		Post.findOne({ _id: req.params.id }).then(function( post ) {
-			fs.unlink("../blog/src/public/uploads/" + post.image );
-		});
-	}
-	// save the new fields to the db and upload the new image with multer
-	Post.findByIdAndUpdate({
-		_id: req.params.id },
-		{
-		title: req.body.title,
-		content: req.body.content,
-		introduction: req.body.introduction,
-		categories: req.body.categories.split(" "),
-		keywords: req.body.keywords.split(",")
-		}).then(function() {
-		// we find again the object by id so we can get the updated object
-		Post.findOne({ _id: req.params.id }).then(function( post ) {
-			res.send( post );
-		});
+	// check the authenticity of the token
+	jwt.verify( req.body.token, process.env.JWT_SECRET, function( err, token ) {
+		// if there's an error return it, else update
+		if ( err ) {
+			res.send( err );
+		} else {
+			// if the updateImage field has data (new img)
+			// get the post and delete the stored (old) image
+			if ( req.file ) {
+				req.body.image = req.file.filename;
+				Post.findOne({ _id: req.params.id }).then(function( post ) {
+					fs.unlink("../blog/src/public/uploads/" + post.image );
+				});
+			}
+			// save the new fields to the db and upload the new image with multer
+			Post.findByIdAndUpdate({
+				_id: req.params.id },
+				{
+				image: req.body.image,
+				title: req.body.title,
+				content: req.body.content,
+				introduction: req.body.introduction,
+				categories: req.body.categories.split(" "),
+				keywords: req.body.keywords.split(",")
+				}).then(function() {
+				// we find again the object by id so we can get the updated object
+				Post.findOne({ _id: req.params.id }).then(function( post ) {
+					res.send( post );
+				});
+			});
+		}
 	});
 });
 
 // DELETE the post info from the db and the post image from uploads
 router.delete("/post/:id", function( req, res, next ) {
-	Post.findByIdAndRemove({ _id: req.params.id }).then(function( post ) {
-		// delete the image
-		fs.unlink("../blog/src/public/uploads/" + post.image );
-		res.send( post );
+	console.log( req );
+	// check the authenticity of the token
+	jwt.verify( req.body.token, process.env.JWT_SECRET, function( err, token ) {
+		if ( err ) {
+			send( err );
+		} else {
+			Post.findByIdAndRemove({ _id: req.params.id }).then(function( post ) {
+				// delete the image
+				fs.unlink("../blog/src/public/uploads/" + post.image );
+				res.send( post );
+			});
+		}
 	});
 });
 
